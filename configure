@@ -1,30 +1,27 @@
 #!/usr/bin/env bash
 
 PROJECT="$(basename $(pwd))"
-CONFIG="${1:-Release}"
-BUILD=${CONFIG,,}
-PACKAGE="package-${BUILD}"
-ARCHIVE="${PROJECT}-${BUILD}-$(date +%Y%m%d_%H%M%S).tar.bz2"
+CONFIG="${1:-release}"
+CONFIG=${CONFIG,,}
+PACKAGE="${PROJECT}-${CONFIG}-$(date +%Y%m%d_%H%M%S)"
+ARCHIVE="${PACKAGE}.tar.bz2"
 
 # Cleanup in case of prev build failed
-rm -fr "build/${BUILD}" "build/${PACKAGE}"
-mkdir -p "build/${BUILD}"
+rm -fr "build/${CONFIG}"
+mkdir -p "build/${CONFIG}"
 
 # Build & install
 (
-  cd "build/${BUILD}"
-  cmake -DCMAKE_INSTALL_PREFIX="$HOME/.local" \
-        -DBUILD_EXAMPLES=ON \
-        -DBUILD_TESTING=ON \
+  cd "build/${CONFIG}"
+  cmake -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
         -DCMAKE_BUILD_TYPE="${CONFIG}" \
-        -DBUILD_SHARED_LIBS=ON \
+        -DBUILD_EXAMPLES=ON \
+        -DINSTALL_EXAMPLES=ON \
+        -DBUILD_TESTING=ON \
+        -DENABLE_FAKEIT=ON \
         ../.. || exit 1
   make && make install DESTDIR="../${PACKAGE}" || exit 1
 ) || exit 1
 
 # Create package
-if [ -d "build/${PACKAGE}" ]; then
-    ls -1 "build/${PACKAGE}" | xargs tar -cvjf "${ARCHIVE}" -C "build/${PACKAGE}"
-else
-    echo "Error: '${ARCHIVE}' generation failed..."
-fi
+ls -1 "build/${PACKAGE}" | xargs tar -cvjf "${ARCHIVE}" -C "build/${PACKAGE}"

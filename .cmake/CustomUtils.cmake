@@ -10,9 +10,10 @@ include (CTest)
 #   outfile - output file name
 #   ARGV2   - deploy path (optional)
 function (add_config infile outfile)
-	configure_file ("${infile}" "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${outfile}" @ONLY)
+    configure_file ("${infile}" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/${PROJECT_NAME}/${outfile}" @ONLY)
     if (ARGV2)
-		install (FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${outfile}" DESTINATION "${ARGV2}")
+        install (FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/${PROJECT_NAME}/${outfile}"
+            DESTINATION "${ARGV2}")
     endif ()
 endfunction ()
 
@@ -38,130 +39,112 @@ endfunction()
 #   ARGV3        - extra libraries list to link with (optional)
 #   ARGV4        - private headers dir (optional)
 function (add_custom_library name sources_list)
-    if (DISABLE_STATIC AND DISABLE_SHARED)
-        message (FATAL_ERROR "Error: both static and shared library versions disabled")
-    endif ()
-
-    string (TOLOWER "${name}" library_name)
-	add_library ("${library_name}_object" OBJECT ${sources_list})
-	set_target_properties ("${library_name}_object" PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    # Objects library to reduce compile time
+    add_library ("${name}" OBJECT ${sources_list})
+    set_target_properties ("${name}" PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
     set (public_headers_dir "${CMAKE_CURRENT_SOURCE_DIR}")
     if (ARGV2)
         set (public_headers_dir "${public_headers_dir}/${ARGV2}")
     endif ()
-	target_include_directories ("${library_name}_object" PUBLIC
-        "${public_headers_dir}"
-        "${ARGV4}"
-		)
-	if (ARGV3)
-		target_link_libraries ("${library_name}_object" ${ARGV3})
-	endif ()
+    target_include_directories ("${name}" PUBLIC "${public_headers_dir}" PRIVATE "${ARGV4}")
 
-	if (NOT DISABLE_STATIC)
-		add_library ("${library_name}_static" STATIC "$<TARGET_OBJECTS:${library_name}_object>")
+    target_link_libraries ("${name}" ${ARGV3})
 
-		set_target_properties ("${library_name}_static" PROPERTIES
-			EXPORT_NAME "${library_name}::static"
-			OUTPUT_NAME "${library_name}"
-			)
+    string (TOLOWER "${name}" name_lowercase)
+    set (export_config "${CMAKE_PROJECT_NAME}Config")
 
-		target_include_directories ("${library_name}_static"
-			PUBLIC
-			"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME}>"
-			"$<BUILD_INTERFACE:${public_headers_dir}>"
-			)
+    # Static variant
+    if (NOT DISABLE_STATIC)
+        add_library ("${name}_static" STATIC "$<TARGET_OBJECTS:${name}>")
 
-		if (ARGV3)
-			target_link_libraries ("${library_name}_static" ${ARGV3})
-		endif ()
+        set_target_properties ("${name}_static" PROPERTIES
+            EXPORT_NAME "${name_lowercase}::static"
+            OUTPUT_NAME "${name_lowercase}"
+            CLEAN_DIRECT_OUTPUT ON
+            )
 
-		install (TARGETS "${library_name}_static" EXPORT "${name}Config"
+        target_link_libraries ("${name}_static" ${ARGV3})
+
+        target_include_directories ("${name}_static"
+            PUBLIC
+            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+            "$<BUILD_INTERFACE:${public_headers_dir}>"
+            PRIVATE
+            "${ARGV4}"
+            )
+        install (TARGETS "${name}_static" EXPORT "${export_config}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
             )
-
-            export(TARGETS "${library_name}_static" NAMESPACE "${CMAKE_PROJECT_NAME}::"
-            FILE "${CMAKE_CURRENT_BINARY_DIR}/${name}Config.cmake"
+        export (TARGETS "${name}_static" NAMESPACE "${CMAKE_PROJECT_NAME}::"
+            FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake"
             )
-
-		add_library("${CMAKE_PROJECT_NAME}::${library_name}::static" ALIAS "${library_name}_static")
+        add_library ("${CMAKE_PROJECT_NAME}::${name_lowercase}::static" ALIAS "${name}_static")
     endif ()
 
-
+    # Dynamic variant
     if (NOT DISABLE_SHARED)
-		add_library ("${library_name}_shared" SHARED "$<TARGET_OBJECTS:${library_name}_object>")
+        add_library ("${name}_shared" SHARED "$<TARGET_OBJECTS:${name}>")
 
+        set (lib_version_major "${CMAKE_PROJECT_VERSION_MAJOR}")
         set (lib_version "${CMAKE_PROJECT_VERSION}")
         if (PROJECT_VERSION)
-			set (lib_version "${PROJECT_VERSION}")
-		endif ()
-
-		set_target_properties ("${library_name}_shared" PROPERTIES
-            VERSION "${lib_version}"
-			EXPORT_NAME "${library_name}::shared"
-			OUTPUT_NAME "${library_name}"
-            )
-
-		target_include_directories ("${library_name}_shared"
-			PUBLIC
-			"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME}>"
-			"$<BUILD_INTERFACE:${public_headers_dir}>"
-			)
-
-        if (ARGV3)
-			target_link_libraries ("${library_name}_shared" ${ARGV3})
+            set (lib_version_major "${PROJECT_VERSION_MAJOR}")
+            set (lib_version "${PROJECT_VERSION}")
         endif ()
 
-		install (TARGETS "${library_name}_shared" EXPORT "${name}Config"
-            LIBRARY
-            NAMELINK_COMPONENT Development
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        set_target_properties ("${name}_shared" PROPERTIES
+            VERSION "${lib_version}"
+            SOVERSION "${lib_version_major}"
+            EXPORT_NAME "${name_lowercase}::shared"
+            OUTPUT_NAME "${name_lowercase}"
+            CLEAN_DIRECT_OUTPUT ON
             )
+        target_link_libraries ("${name}_shared" ${ARGV3})
 
-		export(TARGETS "${library_name}_shared" NAMESPACE "${CMAKE_PROJECT_NAME}::"
-            FILE "${CMAKE_CURRENT_BINARY_DIR}/${name}Config.cmake"
+        target_include_directories ("${name}_shared"
+            PUBLIC
+            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+            "$<BUILD_INTERFACE:${public_headers_dir}>"
+            PRIVATE
+            "${ARGV4}"
             )
-
-		add_library("${CMAKE_PROJECT_NAME}::${library_name}::shared" ALIAS "${library_name}_shared")
+        install (TARGETS "${name}_shared" EXPORT "${export_config}"
+            LIBRARY NAMELINK_COMPONENT Development DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            )
+        export(TARGETS "${name}_shared" NAMESPACE "${CMAKE_PROJECT_NAME}::"
+            FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake"
+            )
+        add_library("${CMAKE_PROJECT_NAME}::${name_lowercase}::shared" ALIAS "${name}_shared")
     endif ()
 
-    install (EXPORT "${name}Config" NAMESPACE "${CMAKE_PROJECT_NAME}::"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${name}")
+    if (NOT DISABLE_STATIC OR NOT DISABLE_SHARED)
+        install (EXPORT "${export_config}" NAMESPACE "${CMAKE_PROJECT_NAME}::"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}"
+            )
+        install (DIRECTORY "${public_headers_dir}/"
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+            FILES_MATCHING REGEX "^.*\.h(pp|xx)?$"
+            PATTERN "private" EXCLUDE
+            )
+    endif ()
 
-	install (DIRECTORY "${public_headers_dir}/"
-		DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME}"
-		FILES_MATCHING REGEX "^.*\.h(pp|xx)?$"
-		PATTERN "private" EXCLUDE
-		)
 endfunction ()
 
 # Add executable target:
 #   name         - application name
 #   sources_list - source files list
 #   ARGV2        - extra libraries to link with (optional)
-#   ARGV3        - private headers dir (optional)
-#   ARGV4        - public headers dir use with other targets (optional)
+#   ARGV3        - headers include dir (optional)
 function (add_application name sources_list)
-    string (TOLOWER "${name}" executable_name)
-    add_executable ("${executable_name}" "${sources_list}")
+    add_executable ("${name}" "${sources_list}")
 
-    if (ARGV2)
-        target_link_libraries ("${executable_name}" "${ARGV2}")
-    endif ()
+    string (TOLOWER "${name}" name_lowercase)
+    set_target_properties ("${name}" PROPERTIES OUTPUT_NAME "${name_lowercase}")
+    target_link_libraries ("${name}" "${ARGV2}")
+    target_include_directories("${name}" PRIVATE "${ARGV3}")
 
-	if (ARGV3)
-        target_include_directories("${executable_name}" PRIVATE "${ARGV3}")
-    endif ()
-
-    set (public_headers_dir "${CMAKE_CURRENT_SOURCE_DIR}")
-    if (ARGV4)
-        set (public_headers_dir "${public_headers_dir}/${ARGV4}")
-    endif ()
-    target_include_directories ("${executable_name}" PUBLIC
-        "$<BUILD_INTERFACE:${public_headers_dir}>"
-        )
-
-    install (TARGETS "${executable_name}" RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install (TARGETS "${name}" RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endfunction ()
 
 # Add Boost test with separate test cases for CTest:

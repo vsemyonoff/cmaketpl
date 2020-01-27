@@ -1,4 +1,6 @@
-build/*
+**/build
+*.autosave
+extlibs/fakeit
 config.cmake
 *.tar.bz2
 *.txt.user

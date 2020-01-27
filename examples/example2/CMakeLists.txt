@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.1 FATAL_ERROR)
 
-project (example1)
+project (example2)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     list (APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../build/package/lib/cmake")

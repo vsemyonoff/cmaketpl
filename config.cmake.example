@@ -11,11 +11,12 @@ set (VERSION_MINOR 0)
 set (VERSION_PATCH 1)
 
 # C++ standard version
-set (REQUIRED_CXX_STANDARD 14)
+set (REQUIRED_CXX_STANDARD 17)
 
 # Boost and components
 set (REQUIRED_BOOST_VERSION 1.60)
 list (APPEND REQUIRED_BOOST_LIBS "program_options")
+# set more Boost options here...
 
 ## 3rd party libs, sources, examples and tests folders
 #set (SOURCES_DIR  "sources")

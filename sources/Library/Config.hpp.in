@@ -2,7 +2,7 @@
 
 #define VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
 
-namespace Example::MyLib::Config {
+namespace Example::Library::Config {
   constexpr static auto InstallPrefix   { "@CMAKE_INSTALL_PREFIX@" };
 
   constexpr static auto MainProjectName { "@CMAKE_PROJECT_NAME@" };

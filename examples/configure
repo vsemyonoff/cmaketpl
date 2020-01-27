@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+PREFIX="$(pwd)/build/package"
+
+# Cleanup in case of prev build failed
+rm -fr "build"
+mkdir -p "build/release"
+
+# Build & install
+(
+  cd "build/release"
+  cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+        -DBUILD_EXAMPLES=OFF \
+        -DBUILD_TESTING=OFF \
+        -DCMAKE_BUILD_TYPE="Release" \
+        ../../.. || exit 1
+  make && make install
+)
