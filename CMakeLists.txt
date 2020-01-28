@@ -171,10 +171,6 @@ if (BUILD_TESTING)
             WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
             COMMAND make test
             )
-#        add_custom_command (TARGET "AutoRunTests" POST_BUILD
-#            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-#            COMMAND make test
-#            )
     endif ()
 endif()
 

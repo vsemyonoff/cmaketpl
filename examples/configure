@@ -14,5 +14,5 @@ mkdir -p "build/release"
         -DBUILD_TESTING=OFF \
         -DCMAKE_BUILD_TYPE="Release" \
         ../../.. || exit 1
-  make && make install
+  cmake --build . --target install
 )

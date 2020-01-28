@@ -14,13 +14,14 @@ mkdir -p "build/${CONFIG}"
 (
   cd "build/${CONFIG}"
   cmake -DCMAKE_INSTALL_PREFIX="${HOME}/.local" \
+        -DCMAKE_STAGING_PREFIX="../${PACKAGE}" \
         -DCMAKE_BUILD_TYPE="${CONFIG}" \
         -DBUILD_EXAMPLES=ON \
         -DINSTALL_EXAMPLES=ON \
         -DBUILD_TESTING=ON \
         -DENABLE_FAKEIT=ON \
         ../.. || exit 1
-  make && make install DESTDIR="../${PACKAGE}" || exit 1
+  cmake --build . --target install || exit 1
 ) || exit 1
 
 # Create package
