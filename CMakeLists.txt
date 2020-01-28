@@ -164,6 +164,18 @@ endif ()
 # Tests
 if (BUILD_TESTING)
     add_dir_or_subdirs ("${TESTS_DIR}")
+    if (AUTORUN_TESTS)
+        get_property (TARGETS_LIST GLOBAL PROPERTY TARGETS_LIST)
+        add_custom_target("AutoRunTests" ALL
+            DEPENDS ${TARGETS_LIST}
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+            COMMAND make test
+            )
+#        add_custom_command (TARGET "AutoRunTests" POST_BUILD
+#            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+#            COMMAND make test
+#            )
+    endif ()
 endif()
 
 ############ End

@@ -43,6 +43,9 @@ function (add_custom_library name sources_list)
     add_library ("${name}" OBJECT ${sources_list})
     set_target_properties ("${name}" PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+    get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
+    list (APPEND targets_list "${name}")
+
     set (public_headers_dir "${CMAKE_CURRENT_SOURCE_DIR}")
     if (ARGV2)
         set (public_headers_dir "${public_headers_dir}/${ARGV2}")
@@ -57,6 +60,7 @@ function (add_custom_library name sources_list)
     # Static variant
     if (NOT DISABLE_STATIC)
         add_library ("${name}_static" STATIC "$<TARGET_OBJECTS:${name}>")
+        list (APPEND targets_list "${name}_static")
 
         set_target_properties ("${name}_static" PROPERTIES
             EXPORT_NAME "${name_lowercase}::static"
@@ -85,6 +89,7 @@ function (add_custom_library name sources_list)
     # Dynamic variant
     if (NOT DISABLE_SHARED)
         add_library ("${name}_shared" SHARED "$<TARGET_OBJECTS:${name}>")
+        list (APPEND targets_list "${name}_shared")
 
         set (lib_version_major "${CMAKE_PROJECT_VERSION_MAJOR}")
         set (lib_version "${CMAKE_PROJECT_VERSION}")
@@ -129,6 +134,7 @@ function (add_custom_library name sources_list)
             )
     endif ()
 
+    set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
 endfunction ()
 
 # Add executable target:
@@ -138,6 +144,9 @@ endfunction ()
 #   ARGV3        - headers include dir (optional)
 function (add_application name sources_list)
     add_executable ("${name}" "${sources_list}")
+    get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
+    list (APPEND targets_list "${name}")
+    set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
 
     string (TOLOWER "${name}" name_lowercase)
     set_target_properties ("${name}" PROPERTIES OUTPUT_NAME "${name_lowercase}")
@@ -155,6 +164,9 @@ endfunction ()
 function (add_boost_test name sources_list)
     string (TOLOWER "${name}" executable_name)
     add_executable ("${executable_name}" ${sources_list})
+    get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
+    list (APPEND targets_list "${executable_name}")
+    set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
 
     target_link_libraries("${executable_name}"
         Boost::system
@@ -172,10 +184,6 @@ function (add_boost_test name sources_list)
                 COMMAND ${executable_name} --run_test=${test_name} --catch_system_error=yes)
         endforeach ()
     endforeach ()
-
-    if (AUTORUN_TESTS)
-        add_custom_command (TARGET ${executable_name} POST_BUILD COMMAND make test)
-    endif ()
 endfunction()
 
 ############ End
