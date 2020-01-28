@@ -44,10 +44,11 @@ if (NOT PROJECT_NAME)
 endif ()
 
 project ("${PROJECT_NAME}"
-    VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
-    DESCRIPTION ${DESCRIPTION}
-    HOMEPAGE_URL ${HOMEPAGE}
-    LANGUAGES C CXX)
+    VERSION      "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
+    DESCRIPTION  "${DESCRIPTION}"
+    HOMEPAGE_URL "${HOMEPAGE}"
+    LANGUAGES    C CXX
+    )
 
 ############ C++ standard version setup
 
@@ -62,6 +63,18 @@ list (APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/.cmake")
 include ("CustomUtils")
 
 ############ Misc
+
+set (default_build_type "Release")
+
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message (STATUS "Setting build type to '${default_build_type}' as none was specified")
+    set (CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+        STRING "Choose the type of build." FORCE
+        )
+    set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+        "Debug" "Release" "MinSizeRel" "RelWithDebInfo"
+        )
+endif ()
 
 ## Allow per-folder targets (for IDEs)
 #set_property (GLOBAL PROPERTY USE_FOLDERS ON)
