@@ -7,12 +7,8 @@ rm -fr "build"
 mkdir -p "build/release"
 
 # Build & install
-(
-  cd "build/release"
+( cd "build/release"
   cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
-        -DBUILD_EXAMPLES=OFF \
-        -DBUILD_TESTING=OFF \
         -DCMAKE_BUILD_TYPE="Release" \
-        ../../.. || exit 1
-  cmake --build . --target install
+        ../../.. && cmake --build . --target install
 )

@@ -144,6 +144,7 @@ endfunction ()
 #   ARGV3        - headers include dir (optional)
 function (add_application name sources_list)
     add_executable ("${name}" "${sources_list}")
+
     get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
     list (APPEND targets_list "${name}")
     set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
@@ -162,13 +163,13 @@ endfunction ()
 #   ARGN         - extra libraries to link with (optional)
 # also add post-build action to run tests after build.
 function (add_boost_test name sources_list)
-    string (TOLOWER "${name}" executable_name)
-    add_executable ("${executable_name}" ${sources_list})
+    add_executable ("${name}" ${sources_list})
+
     get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
-    list (APPEND targets_list "${executable_name}")
+    list (APPEND targets_list "${name}")
     set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
 
-    target_link_libraries("${executable_name}"
+    target_link_libraries("${name}"
         Boost::system
         Boost::unit_test_framework
         ${ARGN}
@@ -181,7 +182,7 @@ function (add_boost_test name sources_list)
         foreach (test ${found_tests})
             string (REGEX REPLACE ".*\\( *([A-Za-z_0-9]+) *\\).*" "\\1" test_name ${test})
             add_test (NAME "${name}.${test_name}"
-                COMMAND ${executable_name} --run_test=${test_name} --catch_system_error=yes)
+                COMMAND ${name} --run_test=${test_name} --catch_system_error=yes)
         endforeach ()
     endforeach ()
 endfunction()
