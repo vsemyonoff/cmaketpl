@@ -182,7 +182,7 @@ if (BUILD_TESTING)
         add_custom_target("AutoRunTests" ALL
             DEPENDS ${TARGETS_LIST}
             WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-            COMMAND make test
+            COMMAND +make test
             )
     endif ()
 endif()
