@@ -43,6 +43,9 @@ function (add_custom_library name sources_list)
     add_library ("${name}" OBJECT ${sources_list})
     set_target_properties ("${name}" PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+    source_group("Header Files\\Private" REGULAR_EXPRESSION ".*/[Pp]rivate/.*\\.h(pp|xx)?$")
+    source_group("Source Files\\Private" REGULAR_EXPRESSION ".*/[Pp]rivate/.*\\.c(pp|xx)?$")
+
     get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
     list (APPEND targets_list "${name}")
 
@@ -151,6 +154,7 @@ function (add_application name sources_list)
 
     string (TOLOWER "${name}" name_lowercase)
     set_target_properties ("${name}" PROPERTIES OUTPUT_NAME "${name_lowercase}")
+
     target_link_libraries ("${name}" "${ARGV2}")
     target_include_directories("${name}" PRIVATE "${ARGV3}")
 
