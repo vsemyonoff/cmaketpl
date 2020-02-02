@@ -18,8 +18,8 @@ set (VERSION_PATCH 1)
 set (REQUIRED_CXX_STANDARD 11)
 
 # Boost and components
-set (REQUIRED_BOOST_VERSION 1.58)
-set (REQUIRED_BOOST_LIBS "")
+set (REQUIRED_BOOST_VERSION "")
+set (REQUIRED_BOOST_LIBS    "")
 # set more Boost options here...
 
 # 3rd party libs, sources, examples and tests folders
@@ -155,12 +155,17 @@ else ()
     set (Boost_USE_STATIC_LIBS    OFF)
 endif ()
 
-if (REQUIRED_BOOST_LIBS)
-    list (REMOVE_DUPLICATES REQUIRED_BOOST_LIBS)
-    find_package (Boost ${REQUIRED_BOOST_VERSION} COMPONENTS ${REQUIRED_BOOST_LIBS} REQUIRED)
-else()
-    find_package (Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
-endif()
+if (BUILD_TESTING OR REQUIRED_BOOST_VERSION)
+    if (NOT REQUIRED_BOOST_VERSION)
+        set (REQUIRED_BOOST_VERSION 1.58)
+    endif ()
+    if (REQUIRED_BOOST_LIBS)
+        list (REMOVE_DUPLICATES REQUIRED_BOOST_LIBS)
+        find_package (Boost ${REQUIRED_BOOST_VERSION} COMPONENTS ${REQUIRED_BOOST_LIBS} REQUIRED)
+    else ()
+        find_package (Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
+    endif ()
+endif ()
 
 add_dir_or_subdirs (${EXTLIBS_DIR})
 
