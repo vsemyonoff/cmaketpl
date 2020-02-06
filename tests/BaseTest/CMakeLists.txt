@@ -7,4 +7,4 @@ set (SRC_LIST
     "remove.cpp"
     )
 
-add_boost_test("${PROJECT_NAME}" "${SRC_LIST}" Example::library::${LIB_TYPE})
+add_boost_test("${PROJECT_NAME}" "${SRC_LIST}" Example::library)
