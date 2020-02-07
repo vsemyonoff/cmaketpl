@@ -8,4 +8,4 @@ set (SOURCES
 add_config ("Config.hpp.in" "Config.hpp"
     "${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME}/${PROJECT_NAME}")
 
-add_custom_library ("${PROJECT_NAME}" "${SOURCES}" "include" "" "src")
+add_custom_library ("${PROJECT_NAME}" "${SOURCES}" "include" "src")
