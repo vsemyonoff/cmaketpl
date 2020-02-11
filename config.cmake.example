@@ -14,7 +14,7 @@ set (VERSION_PATCH 1)
 set (REQUIRED_CXX_STANDARD 17)
 
 # Boost version and components
-set (REQUIRED_BOOST_VERSION 1.60)
+set (REQUIRED_BOOST_VERSION 1.65)
 list (APPEND REQUIRED_BOOST_LIBS "program_options")
 # set more Boost options here...
 
